@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkTime Pro</title>
+
+<meta name="theme-color" content="#4f46e5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WorkTime Pro">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+:root{
+    --primary:#4f46e5;
+    --primary-dark:#3730a3;
+    --primary-soft:#eef2ff;
+    --success:#16a34a;
+    --success-soft:#ecfdf5;
+    --warning:#d97706;
+    --warning-soft:#fffbeb;
+    --danger:#dc2626;
+    --slate:#334155;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --surface:#ffffff;
+    --bg:#f8fafc;
+    --radius:14px;
+    --shadow:0 10px 30px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Inter,Arial,sans-serif;
+    background:
+        radial-gradient(circle at top left,#eef2ff 0,transparent 32%),
+        linear-gradient(180deg,#f8fafc,#f1f5f9);
+    color:#0f172a;
+    font-size:13px;
+}
+.container{min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:10px}
+.card{
+    width:100%;
+    max-width:1120px;
+    background:rgba(255,255,255,.96);
+    padding:18px;
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    text-align:center;
+    border:1px solid rgba(226,232,240,.9);
+}
+#authSection,#staffDashboard{max-width:470px;margin:auto}
+h1,h2,h3{color:var(--primary);margin-top:8px}
+h1{font-size:28px;margin-bottom:5px}
+h2{font-size:20px;margin-bottom:6px}
+h3{font-size:16px}
+p{color:var(--muted);font-size:12px;line-height:1.45}
+strong{font-size:13px}
+input,select,button{font-size:13px}
+.form-control{
+    width:100%;
+    padding:10px 11px;
+    margin-top:7px;
+    border:1px solid #cbd5e1;
+    border-radius:10px;
+    background:#fff;
+    min-height:40px;
+    outline:none;
+}
+.form-control:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.10)}
+.dashboard-box{
+    margin-top:12px;
+    padding:13px;
+    border-radius:14px;
+    text-align:left;
+    border:1px solid rgba(226,232,240,.8);
+}
+.blue-box{background:linear-gradient(145deg,#eef2ff,#f8faff)}
+.green-box{background:linear-gradient(145deg,#ecfdf5,#f7fffb)}
+.yellow-box{background:linear-gradient(145deg,#fffbeb,#fffdf5)}
+.gray-box{background:linear-gradient(145deg,#f8fafc,#fff)}
+.main-btn{
+    width:100%;
+    padding:11px 12px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    min-height:40px;
+    transition:.2s ease;
+}
+.main-btn:active{transform:scale(.99)}
+.login-btn{background:linear-gradient(135deg,var(--primary),#6366f1);color:#fff}
+.in-btn{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
+.out-btn{background:linear-gradient(135deg,#ea580c,#f97316);color:#fff}
+.logout-btn{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
+.secondary-btn{background:linear-gradient(135deg,#334155,#475569);color:#fff}
+.light-btn{background:#e2e8f0;color:#0f172a}
+.main-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.link-btn{border:0;background:transparent;color:var(--primary);text-decoration:underline;cursor:pointer;margin-top:10px;font-size:12px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+.stat-card{
+    padding:12px 10px;
+    border-radius:13px;
+    text-align:center;
+    border:1px solid rgba(226,232,240,.75)
+}
+.stat-number{display:block;margin-top:3px;font-size:21px;font-weight:800}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.summary-card{background:#fff;padding:12px;border-radius:11px;border:1px solid var(--line);text-align:center;font-size:12px}
+.cards-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:11px;margin-top:11px}
+.att-card,.history-card,.profile-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 4px 14px rgba(15,23,42,.05)
+}
+.att-card-header{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding-bottom:8px;border-bottom:1px solid #eef2f7}
+.att-name{font-size:15px;font-weight:800}
+.status-pill{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.pill-present,.pill-completed,.pill-active{background:#dcfce7;color:#166534}
+.pill-absent,.pill-inactive{background:#fee2e2;color:#991b1b}
+.pill-off{background:#dbeafe;color:#1d4ed8}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.detail-item{background:#f8fafc;border-radius:10px;padding:9px}
+.detail-label{font-size:10px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:.02em}
+.detail-value{font-size:12px;font-weight:750;word-break:break-word;color:#1e293b}
+.empty-state{background:#fff;border:1px dashed #cbd5e1;border-radius:11px;padding:14px;color:#64748b;text-align:center;font-size:12px}
+.live-clock{font-size:24px;font-weight:850;color:var(--primary);margin:6px 0 3px}
+.weekly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.weekly-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-size:11px}
+.weekly-value{display:block;margin-top:4px;font-size:17px;font-weight:800}
+.progress-wrap{width:100%;height:9px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:10px}
+.progress-bar{height:100%;background:linear-gradient(90deg,#4f46e5,#8b5cf6);width:0%;transition:width .25s ease}
+.roster-day{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px;margin-top:8px}
+.roster-day-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.roster-grid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:7px}
+#cameraVideo{width:100%;max-height:320px;background:#111827;border-radius:12px;margin-top:10px;display:none}
+#ocrCanvas{display:none}
+.scan-status{font-weight:700;color:var(--primary)}
+.gps-ok{color:#15803d;font-weight:700}.gps-warn{color:#b45309;font-weight:700}
+.gps-card{
+    background:linear-gradient(145deg,#f8fafc,#fff);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:10px;
+}
+.gps-card.in{border-left:4px solid #16a34a}
+.gps-card.out{border-left:4px solid #f97316}
+.gps-title{font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:4px}
+.gps-coord{font-size:11px;font-weight:700;color:#1e293b;line-height:1.4}
+.map-link{
+    display:inline-block;
+    margin-top:6px;
+    padding:6px 9px;
+    border-radius:8px;
+    background:#eef2ff;
+    color:#4338ca;
+    text-decoration:none;
+    font-size:10px;
+    font-weight:800
+}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mini-note{font-size:10px;color:#94a3b8}
+@media(max-width:800px){
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .summary-grid{grid-template-columns:1fr}
+    .roster-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+    body{font-size:12px}
+    .container{padding:6px}
+    .card{padding:12px;border-radius:13px}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .cards-list{grid-template-columns:1fr}
+    .detail-grid{grid-template-columns:1fr 1fr;gap:7px}
+    .weekly-grid{grid-template-columns:1fr 1fr 1fr}
+    h1{font-size:25px}
+    h2{font-size:18px}
+    .form-control{font-size:12px;padding:9px}
+    .main-btn{font-size:12px;padding:10px}
+}
+
+/* ===== FINAL COLORFUL UI OVERRIDES ===== */
+body{
+    background:
+        radial-gradient(circle at 8% 0%, rgba(99,102,241,.18), transparent 27%),
+        radial-gradient(circle at 92% 8%, rgba(236,72,153,.12), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(34,197,94,.10), transparent 30%),
+        linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%);
+}
+.card{
+    border:1px solid rgba(255,255,255,.95);
+    box-shadow:0 18px 50px rgba(30,41,59,.12);
+}
+h1{
+    background:linear-gradient(90deg,#4f46e5,#7c3aed,#db2777);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    font-weight:900;
+    letter-spacing:-.5px;
+}
+h2{color:#312e81;font-weight:850}
+h3{color:#7c3aed}
+#managerWelcome,#staffWelcome{color:#7c3aed;font-weight:700}
+.dashboard-box{
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 5px 16px rgba(15,23,42,.045);
+}
+.dashboard-box::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;width:4px;
+    border-radius:4px;
+}
+.blue-box::before{background:linear-gradient(#4f46e5,#8b5cf6)}
+.green-box::before{background:linear-gradient(#10b981,#22c55e)}
+.yellow-box::before{background:linear-gradient(#f59e0b,#fb7185)}
+.gray-box::before{background:linear-gradient(#0ea5e9,#64748b)}
+.blue-box>strong,.blue-box .section-title>strong{color:#4338ca}
+.green-box>strong,.green-box .section-title>strong{color:#047857}
+.yellow-box>strong,.yellow-box .section-title>strong{color:#c2410c}
+.gray-box>strong,.gray-box .section-title>strong{color:#0369a1}
+.form-control{transition:.2s ease}
+.form-control:focus{transform:translateY(-1px)}
+.stat-card{
+    color:#fff;
+    box-shadow:0 7px 18px rgba(15,23,42,.08);
+    border:none!important;
+}
+.stats-grid .stat-card:nth-child(1){background:linear-gradient(135deg,#4f46e5,#7c3aed)!important}
+.stats-grid .stat-card:nth-child(2){background:linear-gradient(135deg,#059669,#22c55e)!important}
+.stats-grid .stat-card:nth-child(3){background:linear-gradient(135deg,#f59e0b,#f97316)!important}
+.stats-grid .stat-card:nth-child(4){background:linear-gradient(135deg,#0ea5e9,#2563eb)!important}
+.stats-grid .stat-card:nth-child(5){background:linear-gradient(135deg,#db2777,#f43f5e)!important}
+.stats-grid .stat-card:nth-child(6){background:linear-gradient(135deg,#7c3aed,#a855f7)!important}
+.stats-grid .stat-card:nth-child(7){background:linear-gradient(135deg,#334155,#64748b)!important}
+.stat-number{color:#fff}
+.summary-card:nth-child(1){background:linear-gradient(145deg,#eef2ff,#fff);border-color:#c7d2fe}
+.summary-card:nth-child(2){background:linear-gradient(145deg,#ecfdf5,#fff);border-color:#a7f3d0}
+.summary-card:nth-child(3){background:linear-gradient(145deg,#fff7ed,#fff);border-color:#fed7aa}
+.detail-item{border:1px solid #eef2f7}
+.detail-item:nth-child(4n+1){background:linear-gradient(145deg,#f5f3ff,#fff)}
+.detail-item:nth-child(4n+2){background:linear-gradient(145deg,#ecfeff,#fff)}
+.detail-item:nth-child(4n+3){background:linear-gradient(145deg,#f0fdf4,#fff)}
+.detail-item:nth-child(4n+4){background:linear-gradient(145deg,#fff7ed,#fff)}
+.detail-label{color:#7c3aed;font-weight:750}
+.detail-value{color:#0f172a}
+.att-card,.history-card,.profile-card{transition:.18s ease}
+.att-card:hover,.history-card:hover,.profile-card:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(79,70,229,.09)}
+.roster-day:nth-child(7n+1){border-left:4px solid #6366f1}
+.roster-day:nth-child(7n+2){border-left:4px solid #8b5cf6}
+.roster-day:nth-child(7n+3){border-left:4px solid #ec4899}
+.roster-day:nth-child(7n+4){border-left:4px solid #f97316}
+.roster-day:nth-child(7n+5){border-left:4px solid #eab308}
+.roster-day:nth-child(7n+6){border-left:4px solid #22c55e}
+.roster-day:nth-child(7n+7){border-left:4px solid #06b6d4}
+.link-btn{color:#7c3aed;font-weight:700}
+.map-link{background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #c7d2fe}
+.profile-progress{
+    height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:8px
+}
+.profile-progress>div{
+    height:100%;background:linear-gradient(90deg,#4f46e5,#8b5cf6,#ec4899);width:0%;transition:.3s
+}
+.color-chip{
+    display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;
+    background:linear-gradient(135deg,#eef2ff,#fdf2f8);color:#6d28d9;font-weight:800;font-size:10px
+}
+@media(max-width:600px){
+    body{font-size:11px}
+    p{font-size:10.5px}
+    strong{font-size:12px}
+    .att-name{font-size:13px}
+    .detail-label{font-size:9px}
+    .detail-value{font-size:11px}
+    .status-pill{font-size:9px}
+    .stat-number{font-size:18px}
+    .stat-card{font-size:10px}
+}
+
+
+textarea.form-control{font-size:12px}
+#toggleProfileBtn{
+    background:linear-gradient(135deg,#ede9fe,#fdf2f8);
+    color:#6d28d9;
+    border:1px solid #ddd6fe;
+    padding:6px 9px;
+    border-radius:999px;
+}
+#profileQuickSummary{animation:fadeProfile .18s ease}
+#profileFormWrap{animation:fadeProfile .18s ease}
+@keyframes fadeProfile{from{opacity:.35;transform:translateY(-2px)}to{opacity:1;transform:none}}
+
+</style>
+</head>
+
+<body>
+<div class="container"><div class="card">
+<h1>WorkTime Pro</h1>
+<p>Staff Attendance Management System</p>
+
+<div id="pwaInstallWrap" style="display:none;max-width:480px;margin:8px auto 12px;">
+    <button id="pwaInstallBtn" class="main-btn login-btn" style="margin-top:0;">
+        Install WorkTime Pro App
+    </button>
+</div>
+
+
+<div id="authSection">
+    <div id="loginPanel">
+        <input type="email" id="loginEmail" class="form-control" placeholder="Gmail Address">
+        <input type="password" id="loginPassword" class="form-control" placeholder="Password">
+        <button id="loginBtn" class="main-btn login-btn">Login</button>
+        <button id="forgotPasswordBtn" class="link-btn">Forgot Password?</button>
+        <button id="showSignupBtn" class="link-btn">Create Staff Account</button>
+        <p id="loginMessage"></p>
+    </div>
+
+    <div id="signupPanel" style="display:none;">
+        <h3>Create Staff Account</h3>
+        <input type="email" id="signupEmail" class="form-control" placeholder="Gmail Address">
+        <input type="password" id="signupPassword" class="form-control" placeholder="Password (minimum 6 characters)">
+        <input type="password" id="signupPassword2" class="form-control" placeholder="Confirm Password">
+        <button id="signupBtn" class="main-btn login-btn">Sign Up</button>
+        <button id="showLoginBtn" class="link-btn">Back to Login</button>
+        <p id="signupMessage"></p>
+    </div>
+</div>
+
+<div id="managerDashboard" style="display:none;">
+    <h2>Manager Dashboard</h2>
+    <p id="managerWelcome">Welcome, Manager</p>
+
+    <div class="dashboard-box gray-box">
+        <div class="section-title">
+            <strong>Manager Profile</strong>
+            <span class="color-chip">Management</span>
+        </div>
+        <div class="detail-grid">
+            <input type="text" id="managerProfileName" class="form-control" placeholder="Full Name">
+            <input type="text" id="managerProfileNIC" class="form-control" placeholder="NIC">
+            <input type="text" id="managerProfileEmpNo" class="form-control" placeholder="Employee No">
+            <input type="text" id="managerProfileDesignation" class="form-control" placeholder="Designation">
+            <input type="text" id="managerProfileDepartment" class="form-control" placeholder="Outlet / Department">
+            <input type="tel" id="managerProfileMobile" class="form-control" placeholder="Mobile Number">
+        </div>
+        <button id="saveManagerProfileBtn" class="main-btn secondary-btn">Save Manager Details</button>
+        <p id="managerProfileMessage"></p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card blue-box">Total Staff<span id="totalStaffCount" class="stat-number">0</span></div>
+        <div class="stat-card green-box">Present<span id="presentTodayCount" class="stat-number">0</span></div>
+        <div class="stat-card yellow-box">Late<span id="lateTodayCount" class="stat-number">0</span></div>
+        <div class="stat-card gray-box">Off<span id="offTodayCount" class="stat-number">0</span></div>
+        <div class="stat-card blue-box">Total Staff OT<span id="totalStaffOTCount" class="stat-number">0h 0m</span></div>
+        <div class="stat-card green-box">Completed<span id="completedTodayCount" class="stat-number">0</span></div>
+        <div class="stat-card gray-box">Absent<span id="absentTodayCount" class="stat-number">0</span></div>
+    </div>
+
+    <div class="dashboard-box blue-box">
+        <strong>View Attendance by Date</strong>
+        <input type="date" id="managerDatePicker" class="form-control">
+        <button id="loadDateBtn" class="main-btn login-btn">Load Date</button>
+    </div>
+
+    <div class="dashboard-box yellow-box">
+        <strong>Staff Attendance</strong>
+        <p id="managerSelectedDate"></p>
+        <div id="managerAttendanceCards" class="cards-list"></div>
+    </div>
+
+    <div class="dashboard-box green-box">
+        <strong>Individual Staff Details</strong>
+        <select id="managerStaffSelect" class="form-control"><option value="">Select Staff</option></select>
+        <button id="viewStaffDetailsBtn" class="main-btn secondary-btn">View Staff Details</button>
+        <div id="managerStaffDetailBox" style="margin-top:12px;"><div class="empty-state">Select a staff member.</div></div>
+        <div id="managerWeeklyRosterBox" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="dashboard-box blue-box">
+        <div class="section-title"><strong>Staff Monthly History</strong><span class="mini-note">IN/OUT GPS included</span></div>
+        <div class="detail-item" style="margin-top:8px;">
+            <div class="detail-label">Selected Staff</div>
+            <div class="detail-value" id="historySelectedStaffName">Select staff from Individual Staff Details above</div>
+        </div>
+        <input type="month" id="historyMonth" class="form-control">
+        <button id="loadHistoryBtn" class="main-btn secondary-btn">Load History</button>
+        <button id="exportHistoryBtn" class="main-btn login-btn">Export History CSV</button>
+        <div class="summary-grid" style="margin-top:12px;">
+            <div class="summary-card">Total Hours<div id="monthlyTotalHours" class="stat-number">0h 0m</div></div>
+            <div class="summary-card">Total OT<div id="monthlyTotalOT" class="stat-number">0h 0m</div></div>
+            <div class="summary-card">Total Late<div id="monthlyTotalLate" class="stat-number">0 min</div></div>
+        </div>
+        <div id="historyCards" class="cards-list"><div class="empty-state">Select staff and month.</div></div>
+    </div>
+
+    <button id="refreshManagerBtn" class="main-btn login-btn">Refresh Today</button>
+
+    <div class="dashboard-box" style="background:linear-gradient(145deg,#fff1f2,#fff);border:1px solid #fecdd3;margin-top:14px;">
+        <div class="section-title">
+            <strong style="color:#be123c;">Staff Data Management</strong>
+            <span class="color-chip" style="background:#ffe4e6;color:#be123c;">Manager Only</span>
+        </div>
+        <p style="color:#9f1239;margin-bottom:6px;">
+            Uses the staff member selected under <strong>Individual Staff Details</strong>.
+        </p>
+
+        <button id="clearStaffAttendanceBtn" class="main-btn" style="background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;">
+            Clear Selected Staff Attendance
+        </button>
+
+        <button id="removeStaffCompletelyBtn" class="main-btn logout-btn">
+            Remove Selected Staff Data
+        </button>
+
+        <p id="staffManagementMessage" style="font-weight:700;"></p>
+        <p style="font-size:10px;color:#9f1239;margin-bottom:0;">
+            Free phone-only mode: this button removes all WorkTime Pro data. Then delete the same Gmail once from Firebase Authentication → Users so it can sign up again.
+        </p>
+    </div>
+
+    <button id="managerLogoutBtn" class="main-btn logout-btn">Logout</button>
+</div>
+
+<div id="staffDashboard" style="display:none;">
+    <h2>Staff Dashboard</h2>
+    <p id="staffWelcome">Welcome, Staff</p>
+
+<div class="dashboard-box gray-box" style="text-align:center;">
+        <strong>Live Time</strong>
+        <div id="staffLiveClock" class="live-clock">--:--:--</div>
+        <div id="staffTodayDate" style="color:#6b7280;font-size:11px;"></div>
+    </div>
+
+<div class="dashboard-box blue-box" id="staffProfileSection">
+        <div class="section-title">
+            <strong>My Profile</strong>
+            <button id="toggleProfileBtn" class="link-btn" style="margin:0;text-decoration:none;font-weight:800;">View / Edit</button>
+        </div>
+
+        <div id="profileQuickSummary" class="detail-grid" style="display:none;margin-top:10px;">
+            <div class="detail-item"><div class="detail-label">Name</div><div class="detail-value" id="profileSummaryName">-</div></div>
+            <div class="detail-item"><div class="detail-label">Employee No</div><div class="detail-value" id="profileSummaryEmpNo">-</div></div>
+            <div class="detail-item"><div class="detail-label">Designation</div><div class="detail-value" id="profileSummaryDesignation">-</div></div>
+            <div class="detail-item"><div class="detail-label">Outlet / Department</div><div class="detail-value" id="profileSummaryDepartment">-</div></div>
+        </div>
+
+        <div id="profileFormWrap">
+            <input type="text" id="profileName" class="form-control" placeholder="Full Name">
+            <input type="text" id="profileNIC" class="form-control" placeholder="NIC">
+            <input type="text" id="profileEmpNo" class="form-control" placeholder="Employee No">
+            <input type="text" id="profileDesignation" class="form-control" placeholder="Job Role / Designation">
+            <input type="text" id="profileDepartment" class="form-control" placeholder="Outlet / Department">
+            <input type="tel" id="profileMobile" class="form-control" placeholder="Mobile Number">
+            <textarea id="profileAddress" class="form-control" rows="3" placeholder="Address" style="resize:vertical;font-family:inherit;"></textarea>
+            <label style="display:block;margin-top:8px;color:#64748b;font-size:10px;">Date Joined</label>
+            <input type="date" id="profileJoinDate" class="form-control">
+            <div style="margin-top:10px;">
+                <div class="section-title"><span class="mini-note">Profile completion</span><span id="profileCompletionText" class="color-chip">0%</span></div>
+                <div class="profile-progress"><div id="profileCompletionBar"></div></div>
+            </div>
+            <p style="font-size:11px;">System Role: <strong>Staff</strong> (cannot be changed by staff)</p>
+            <button id="saveProfileBtn" class="main-btn login-btn">Save My Details</button>
+            <p id="profileMessage"></p>
+        </div>
+    </div>
+
+<div class="dashboard-box yellow-box">
+        <div class="section-title">
+            <strong>Fingerprint Machine Time Scanner</strong>
+            <span class="color-chip">Auto GPS</span>
+        </div>
+        <p>Open the camera and point it at the fingerprint machine time display. GPS refreshes automatically and the machine time is detected automatically.</p>
+        <p id="gpsStatus">Preparing GPS automatically...</p>
+        <button id="openCameraBtn" class="main-btn login-btn">Open Camera & Auto Scan</button>
+        <button id="closeCameraBtn" class="main-btn light-btn" style="display:none;">Close Camera</button>
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <canvas id="ocrCanvas"></canvas>
+        <p id="cameraModeText"></p>
+        <p id="scanStatus" class="scan-status"></p>
+    </div>
+
+<div class="dashboard-box green-box">
+        <div class="section-title"><strong>Today's Attendance</strong><span id="staffTodayRoster" class="color-chip">Roster: --</span></div>
+        <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">IN Time</div><div class="detail-value" id="staffInTime">--:--</div></div>
+            <div class="detail-item"><div class="detail-label">OUT Time</div><div class="detail-value" id="staffOutTime">--:--</div></div>
+            <div class="detail-item"><div class="detail-label">Total</div><div class="detail-value" id="staffTotal">0h 0m</div></div>
+            <div class="detail-item"><div class="detail-label">Late</div><div class="detail-value" id="staffLate">0 min</div></div>
+            <div class="detail-item"><div class="detail-label">OT</div><div class="detail-value" id="staffOT">0 min</div></div>
+            <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value" id="staffStatus">Not Marked</div></div>
+        </div>
+        <div id="staffTodayGps" class="detail-grid" style="margin-top:8px;"></div>
+    </div>
+
+<div class="dashboard-box green-box">
+        <strong>My Attendance History</strong>
+        <input type="month" id="staffHistoryMonth" class="form-control">
+        <button id="loadStaffOwnHistoryBtn" class="main-btn secondary-btn">Load My History</button>
+        <div id="staffOwnHistoryCards" class="cards-list"><div class="empty-state">Select a month.</div></div>
+    </div>
+
+<div class="dashboard-box blue-box">
+        <strong>This Week Summary</strong>
+        <div class="weekly-grid">
+            <div class="weekly-item">Worked<span id="staffWeeklyHours" class="weekly-value">0h 0m</span></div>
+            <div class="weekly-item">OT<span id="staffWeeklyOT" class="weekly-value">0h 0m</span></div>
+            <div class="weekly-item">Late<span id="staffWeeklyLate" class="weekly-value">0 min</span></div>
+        </div>
+        <div class="progress-wrap"><div id="weeklyProgressBar" class="progress-bar"></div></div>
+        <p id="weeklyTargetText" style="margin-bottom:0;">Weekly target: 42h 30m</p>
+    </div>
+
+<div class="dashboard-box green-box">
+        <strong>Weekly Roster</strong>
+        <p>Update Monday to Sunday once. This same roster repeats every week.</p>
+        <div id="weeklyRosterEditor"></div>
+        <button id="saveWeeklyRosterBtn" class="main-btn login-btn">Save Weekly Roster</button>
+        <p id="weeklyRosterMessage"></p>
+    </div>
+
+    <button id="staffLogoutBtn" class="main-btn logout-btn">Logout</button>
+</div>
+</div></div>
+
+<script type="module">
+// @ts-nocheck
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+const firebaseConfig={
+    apiKey:"AIzaSyBcZ7j9pQpdjVkUAh2wGTISd3z0tPN-o-o",
+    authDomain:"worktimepro-d4f8c.firebaseapp.com",
+    projectId:"worktimepro-d4f8c",
+    storageBucket:"worktimepro-d4f8c.firebasestorage.app",
+    messagingSenderId:"677592470967",
+    appId:"1:677592470967:web:e49b84f3b5b0a059598432"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+let cachedStaffList=[];
+let gpsWatchId=null,currentGps=null,cameraStream=null,ocrTimer=null,ocrBusy=false,lastDetectedTime="",sameDetectionCount=0;
+let authFlowBusy=false;
+let dashboardOpening=false;
+
+function getTodayDate(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`}
+function getCurrentMonth(){return getTodayDate().slice(0,7)}
+function timeToMinutes(t){if(!t)return 0;const p=t.split(":");return Number(p[0])*60+Number(p[1])}
+function calculateLate(a,r){if(!a||!r)return 0;return Math.max(0,timeToMinutes(a)-timeToMinutes(r))}
+function calculateTotalMinutes(i,o){if(!i||!o)return 0;let s=timeToMinutes(i),e=timeToMinutes(o);if(e<s)e+=1440;return Math.max(0,e-s)}
+function formatMinutesToHours(m){const v=Number(m)||0;return `${Math.floor(v/60)}h ${Math.round(v%60)}m`}
+function escapeHTML(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function getRosterId(uid,date){return `${uid}_${date}`}
+function getAttendanceId(uid,date){return `${uid}_${date}`}
+function statusPillClass(s){if(s==="Completed")return"pill-completed";if(s==="Present")return"pill-present";if(s==="Off")return"pill-off";return"pill-absent"}
+function getWeekStartDate(){const d=new Date(),day=d.getDay(),diff=day===0?-6:1-day;d.setDate(d.getDate()+diff);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function getWeekEndDate(){const d=new Date(getWeekStartDate()+"T00:00:00");d.setDate(d.getDate()+6);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function isGmail(email){return /^[A-Z0-9._%+-]+@gmail\.com$/i.test(email)}
+function gpsMapLink(gps,label){
+    if(!gps||gps.lat==null||gps.lng==null)return `<div class="gps-card"><div class="gps-title">${label}</div><div class="gps-coord">No GPS data</div></div>`;
+    const url=`https://www.google.com/maps?q=${encodeURIComponent(gps.lat+","+gps.lng)}`;
+    return `<div class="gps-card ${label.startsWith("IN")?"in":"out"}">
+        <div class="gps-title">${label}</div>
+        <div class="gps-coord">${Number(gps.lat).toFixed(6)}, ${Number(gps.lng).toFixed(6)} • ±${gps.accuracy??"?"}m</div>
+        <a class="map-link" href="${url}" target="_blank" rel="noopener">Open Map</a>
+    </div>`;
+}
+function csvEscape(v){const s=String(v??"");return /[",\n]/.test(s)?`"${s.replaceAll('"','""')}"`:s}
+function downloadCSV(filename,rows){
+    const csv=rows.map(r=>r.map(csvEscape).join(",")).join("\n");
+    const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+
+function showAuth(){
+    $("authSection").style.display="block";$("managerDashboard").style.display="none";$("staffDashboard").style.display="none";
+}
+$("showSignupBtn").onclick=()=>{$("loginPanel").style.display="none";$("signupPanel").style.display="block"};
+$("showLoginBtn").onclick=()=>{$("signupPanel").style.display="none";$("loginPanel").style.display="block"};
+
+$("forgotPasswordBtn").onclick=async()=>{
+    const email=$("loginEmail").value.trim();
+    if(!email){
+        $("loginMessage").textContent="Enter your Gmail address first.";
+        return;
+    }
+    if(!isGmail(email)){
+        $("loginMessage").textContent="Please enter a valid Gmail address.";
+        return;
+    }
+    $("loginMessage").textContent="Sending password reset email...";
+    try{
+        await sendPasswordResetEmail(auth,email);
+        $("loginMessage").textContent="✓ Password reset link sent to your Gmail.";
+    }catch(e){
+        console.error(e);
+        if(e.code==="auth/user-not-found"){
+            $("loginMessage").textContent="No account found with this Gmail.";
+        }else{
+            $("loginMessage").textContent="Reset failed: "+e.message;
+        }
+    }
+};
+
+$("signupBtn").onclick=async()=>{
+    const email=$("signupEmail").value.trim(),p1=$("signupPassword").value,p2=$("signupPassword2").value;
+    if(!isGmail(email)){$("signupMessage").textContent="Please use a Gmail address.";return}
+    if(p1.length<6){$("signupMessage").textContent="Password must be at least 6 characters.";return}
+    if(p1!==p2){$("signupMessage").textContent="Passwords do not match.";return}
+
+    authFlowBusy=true;
+    $("signupBtn").disabled=true;
+    $("signupMessage").textContent="Creating account...";
+
+    try{
+        const c=await createUserWithEmailAndPassword(auth,email,p1);
+
+        // Create the Firestore profile BEFORE dashboard loading.
+        await setDoc(doc(db,"users",c.user.uid),{
+            email:c.user.email||email,
+            name:"",
+            nic:"",
+            empNo:"",
+            designation:"",
+            department:"",
+            mobile:"",
+            address:"",
+            joinDate:"",
+            role:"Staff",
+            active:true,
+            profileComplete:false,
+            createdAt:new Date().toISOString()
+        });
+
+        $("signupMessage").textContent="✓ Account created.";
+        authFlowBusy=false;
+        await openUserDashboard(c.user);
+
+    }catch(e){
+        console.error(e);
+        authFlowBusy=false;
+
+        if(e.code==="auth/email-already-in-use"){
+            $("signupMessage").textContent="This Gmail already has an account. Please Login or use Forgot Password.";
+        }else if(e.code==="permission-denied" || String(e.message||"").toLowerCase().includes("insufficient permissions")){
+            $("signupMessage").textContent="Account created, but profile permission failed. Please try Login once after rules update.";
+        }else{
+            $("signupMessage").textContent="Signup failed: "+e.message;
+        }
+    }finally{
+        $("signupBtn").disabled=false;
+    }
+};
+
+$("loginBtn").onclick=async()=>{
+    const email=$("loginEmail").value.trim(),password=$("loginPassword").value;
+    if(!email||!password){$("loginMessage").textContent="Please enter email and password.";return}
+
+    authFlowBusy=true;
+    $("loginBtn").disabled=true;
+    $("loginMessage").textContent="Logging in...";
+
+    try{
+        const c=await signInWithEmailAndPassword(auth,email,password);
+        authFlowBusy=false;
+        await openUserDashboard(c.user);
+    }catch(e){
+        console.error(e);
+        authFlowBusy=false;
+        $("loginMessage").textContent=e.code==="auth/invalid-credential"?"Incorrect email or password.":"Login failed: "+e.message;
+    }finally{
+        $("loginBtn").disabled=false;
+    }
+};
+
+async function openUserDashboard(user){
+    if(!user || dashboardOpening)return;
+    dashboardOpening=true;
+
+    try{
+        const profileRef=doc(db,"users",user.uid);
+        let snap;
+
+        try{
+            snap=await getDoc(profileRef);
+        }catch(e){
+            console.error("Profile read error:",e);
+            showAuth();
+            $("loginMessage").textContent="Profile access failed. Please close and reopen the app once.";
+            return;
+        }
+
+        if(!snap.exists()){
+            // Self-heal Auth users that exist without a Firestore profile.
+            // This is useful for accounts created during earlier testing.
+            try{
+                await setDoc(profileRef,{
+                    email:user.email||"",
+                    name:"",
+                    nic:"",
+                    empNo:"",
+                    designation:"",
+                    department:"",
+                    mobile:"",
+                    address:"",
+                    joinDate:"",
+                    role:"Staff",
+                    active:true,
+                    profileComplete:false,
+                    createdAt:new Date().toISOString()
+                });
+                snap=await getDoc(profileRef);
+            }catch(e){
+                console.error("Profile recovery failed:",e);
+                showAuth();
+                $("loginMessage").textContent="User profile is missing. Please contact the manager or create the account again.";
+                return;
+            }
+        }
+
+        const d=snap.data()||{};
+        const role=String(d.role||"Staff").trim().toLowerCase();
+
+        if(d.active===false){
+            await signOut(auth);
+            showAuth();
+            $("loginMessage").textContent="This account is inactive.";
+            return;
+        }
+
+        $("authSection").style.display="none";
+        $("managerDashboard").style.display="none";
+        $("staffDashboard").style.display="none";
+
+        if(role==="manager"){
+            $("managerDashboard").style.display="block";
+            $("managerWelcome").textContent="Welcome, "+(d.name||"Manager");
+            $("managerDatePicker").value=getTodayDate();
+            $("historyMonth").value=getCurrentMonth();
+
+            await loadManagerProfile(user.uid);
+            await loadStaffList();
+            await loadManagerDashboard(getTodayDate());
+        }else{
+            $("staffDashboard").style.display="block";
+            $("staffWelcome").textContent="Welcome, "+(d.name||"Staff");
+            $("staffHistoryMonth").value=getCurrentMonth();
+
+            await loadProfile(user.uid);
+            await loadWeeklyRoster(user.uid);
+            await loadTodayAttendance(user.uid);
+            await loadStaffWeeklySummary(user.uid);
+            startGpsTracking();
+        }
+    }catch(e){
+        console.error(e);
+        showAuth();
+        $("loginMessage").textContent="Profile error: "+e.message;
+    }finally{
+        dashboardOpening=false;
+    }
+}
+onAuthStateChanged(auth,async u=>{
+    if(authFlowBusy)return;
+    if(u)await openUserDashboard(u);
+    else showAuth();
+});
+
+async function logoutUser(){
+    stopCamera();gpsWatchId=null;
+    await signOut(auth);showAuth();
+}
+$("managerLogoutBtn").onclick=logoutUser;$("staffLogoutBtn").onclick=logoutUser;
+
+
+async function loadManagerProfile(uid){
+    const snap=await getDoc(doc(db,"users",uid));if(!snap.exists())return;
+    const d=snap.data();
+    $("managerProfileName").value=d.name||"";
+    $("managerProfileNIC").value=d.nic||"";
+    $("managerProfileEmpNo").value=d.empNo||"";
+    $("managerProfileDesignation").value=d.designation||"";
+    $("managerProfileDepartment").value=d.department||"";
+    $("managerProfileMobile").value=d.mobile||"";
+}
+$("saveManagerProfileBtn").onclick=async()=>{
+    const u=auth.currentUser;if(!u)return;
+    const name=$("managerProfileName").value.trim();
+    const nic=$("managerProfileNIC").value.trim();
+    const empNo=$("managerProfileEmpNo").value.trim();
+    const designation=$("managerProfileDesignation").value.trim();
+    const department=$("managerProfileDepartment").value.trim();
+    const mobile=$("managerProfileMobile").value.trim();
+    if(!name||!empNo||!designation){
+        $("managerProfileMessage").textContent="Please enter at least Name, Employee No and Designation.";
+        return;
+    }
+    try{
+        await setDoc(doc(db,"users",u.uid),{
+            name,nic,empNo,designation,department,mobile,role:"Manager",
+            updatedAt:new Date().toISOString()
+        },{merge:true});
+        $("managerProfileMessage").textContent="✓ Manager details saved";
+        $("managerWelcome").textContent="Welcome, "+name;
+    }catch(e){
+        $("managerProfileMessage").textContent="Save failed: "+e.message;
+    }
+};
+
+function updateProfileCompletion(){
+    const ids=["profileName","profileNIC","profileEmpNo","profileDesignation","profileDepartment","profileMobile","profileAddress","profileJoinDate"];
+    const done=ids.filter(id=>($(id)?.value||"").trim()).length;
+    const pct=Math.round((done/ids.length)*100);
+    if($("profileCompletionText"))$("profileCompletionText").textContent=pct+"%";
+    if($("profileCompletionBar"))$("profileCompletionBar").style.width=pct+"%";
+}
+
+
+function updateProfileSummary(){
+    if($("profileSummaryName"))$("profileSummaryName").textContent=$("profileName").value.trim()||"-";
+    if($("profileSummaryEmpNo"))$("profileSummaryEmpNo").textContent=$("profileEmpNo").value.trim()||"-";
+    if($("profileSummaryDesignation"))$("profileSummaryDesignation").textContent=$("profileDesignation").value.trim()||"-";
+    if($("profileSummaryDepartment"))$("profileSummaryDepartment").textContent=$("profileDepartment").value.trim()||"-";
+}
+function setProfileFormVisible(show){
+    if(!$("profileFormWrap")||!$("profileQuickSummary"))return;
+    $("profileFormWrap").style.display=show?"block":"none";
+    $("profileQuickSummary").style.display=show?"none":"grid";
+    $("toggleProfileBtn").textContent=show?"Hide Profile":"View / Edit";
+}
+$("toggleProfileBtn").onclick=()=>{
+    const hidden=$("profileFormWrap").style.display==="none";
+    setProfileFormVisible(hidden);
+};
+
+async function loadProfile(uid){
+    const s=await getDoc(doc(db,"users",uid));if(!s.exists())return;const d=s.data();
+    $("profileName").value=d.name||"";$("profileNIC").value=d.nic||"";$("profileEmpNo").value=d.empNo||"";$("profileDesignation").value=d.designation||"";
+    $("profileDepartment").value=d.department||"";$("profileMobile").value=d.mobile||"";$("profileAddress").value=d.address||"";$("profileJoinDate").value=d.joinDate||"";
+    updateProfileCompletion();
+    updateProfileSummary();
+    setProfileFormVisible(d.profileComplete!==true);
+}
+$("saveProfileBtn").onclick=async()=>{
+    const u=auth.currentUser;if(!u)return;
+    const name=$("profileName").value.trim(),nic=$("profileNIC").value.trim(),empNo=$("profileEmpNo").value.trim(),designation=$("profileDesignation").value.trim();
+    const department=$("profileDepartment").value.trim(),mobile=$("profileMobile").value.trim(),address=$("profileAddress").value.trim(),joinDate=$("profileJoinDate").value;
+    if(!name||!nic||!empNo||!designation){$("profileMessage").textContent="Please complete Name, NIC, Employee No and Job Role.";return}
+    try{
+        await setDoc(doc(db,"users",u.uid),{name,nic,empNo,designation,department,mobile,address,joinDate,role:"Staff",profileComplete:true,updatedAt:new Date().toISOString()},{merge:true});
+        $("profileMessage").textContent="✓ Details saved";$("staffWelcome").textContent="Welcome, "+name;updateProfileCompletion();updateProfileSummary();setTimeout(()=>setProfileFormVisible(false),500);
+    }catch(e){$("profileMessage").textContent="Save failed: "+e.message}
+};
+["profileName","profileNIC","profileEmpNo","profileDesignation","profileDepartment","profileMobile","profileAddress","profileJoinDate"].forEach(id=>{
+    $(id)?.addEventListener("input",updateProfileCompletion);
+    $(id)?.addEventListener("change",updateProfileCompletion);
+});
+
+const WEEK_DAYS=[
+{key:"monday",label:"Monday"},{key:"tuesday",label:"Tuesday"},{key:"wednesday",label:"Wednesday"},
+{key:"thursday",label:"Thursday"},{key:"friday",label:"Friday"},{key:"saturday",label:"Saturday"},{key:"sunday",label:"Sunday"}];
+
+function weekdayKeyFromDate(date){
+    const names=["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+    return names[new Date(date+"T00:00:00").getDay()];
+}
+async function getRosterForDate(uid,date){
+    const snap=await getDoc(doc(db,"weeklyRosters",uid));
+    if(snap.exists()){
+        const day=(snap.data().days||{})[weekdayKeyFromDate(date)];
+        if(day)return {exists:()=>true,data:()=>({userId:uid,date,type:day.type||"Full Day",inTime:day.inTime||"",outTime:day.outTime||""})};
+    }
+    let old=await getDoc(doc(db,"rosters",getRosterId(uid,date)));
+    if(!old.exists()){const legacy=await getDoc(doc(db,"rosters",uid));if(legacy.exists()&&legacy.data().date===date)old=legacy}
+    return old;
+}
+function renderWeeklyRoster(days={}){
+    let html="";
+    for(const d of WEEK_DAYS){
+        const x=days[d.key]||{},type=x.type||"Full Day",i=x.inTime||(type==="Off"?"":"08:00"),o=x.outTime||(type==="Off"?"":"16:30");
+        html+=`<div class="roster-day" data-day="${d.key}">
+            <div class="roster-day-head"><strong>${d.label}</strong></div>
+            <div class="roster-grid">
+                <select class="form-control week-type">
+                    <option value="Full Day" ${type==="Full Day"?"selected":""}>Full Day</option>
+                    <option value="Half Day" ${type==="Half Day"?"selected":""}>Half Day</option>
+                    <option value="Off" ${type==="Off"?"selected":""}>Off Day</option>
+                </select>
+                <input type="time" class="form-control week-in" value="${escapeHTML(i)}">
+                <input type="time" class="form-control week-out" value="${escapeHTML(o)}">
+            </div>
+        </div>`;
+    }
+    $("weeklyRosterEditor").innerHTML=html;
+    document.querySelectorAll("#weeklyRosterEditor .roster-day").forEach(row=>{
+        const t=row.querySelector(".week-type"),fn=()=>{
+            const off=t.value==="Off";
+            row.querySelector(".week-in").disabled=off;row.querySelector(".week-out").disabled=off;
+            if(off){row.querySelector(".week-in").value="";row.querySelector(".week-out").value=""}
+        };
+        t.addEventListener("change",fn);fn();
+    });
+}
+async function loadWeeklyRoster(uid){
+    try{const s=await getDoc(doc(db,"weeklyRosters",uid));renderWeeklyRoster(s.exists()?(s.data().days||{}):{})}
+    catch(e){renderWeeklyRoster({});$("weeklyRosterMessage").textContent="Roster load failed: "+e.message}
+}
+$("saveWeeklyRosterBtn").onclick=async()=>{
+    const u=auth.currentUser;if(!u)return;const days={};
+    for(const row of document.querySelectorAll("#weeklyRosterEditor .roster-day")){
+        const key=row.dataset.day,type=row.querySelector(".week-type").value;
+        let i=row.querySelector(".week-in").value,o=row.querySelector(".week-out").value;
+        if(type==="Off"){i="";o=""}else if(!i||!o){$("weeklyRosterMessage").textContent="Enter IN and OUT for "+key+".";return}
+        days[key]={type,inTime:i,outTime:o};
+    }
+    try{await setDoc(doc(db,"weeklyRosters",u.uid),{userId:u.uid,days,updatedAt:new Date().toISOString()},{merge:true});$("weeklyRosterMessage").textContent="✓ Weekly roster saved. It repeats every week."}
+    catch(e){$("weeklyRosterMessage").textContent="Save failed: "+e.message}
+};
+
+async function startGpsTracking(){
+    if($("gpsStatus"))$("gpsStatus").textContent="Refreshing GPS automatically...";
+    await refreshGpsOnce();
+}
+
+
+function refreshGpsOnce(){
+    return new Promise(resolve=>{
+        if(!navigator.geolocation){resolve(null);return}
+        navigator.geolocation.getCurrentPosition(async pos=>{
+            const u=auth.currentUser;
+            currentGps={
+                lat:pos.coords.latitude,
+                lng:pos.coords.longitude,
+                accuracy:Math.round(pos.coords.accuracy),
+                updatedAt:new Date().toISOString()
+            };
+            if($("gpsStatus"))$("gpsStatus").innerHTML=`<span class="gps-ok">GPS Ready</span> • Accuracy: ${currentGps.accuracy} m`;
+            try{
+                if(u)await setDoc(doc(db,"locations",u.uid),{userId:u.uid,...currentGps},{merge:true});
+            }catch(e){console.error("GPS save:",e)}
+            resolve(currentGps);
+        },err=>{
+            if($("gpsStatus"))$("gpsStatus").innerHTML=`<span class="gps-warn">GPS unavailable:</span> ${escapeHTML(err.message)}`;
+            resolve(null);
+        },{enableHighAccuracy:true,maximumAge:0,timeout:12000});
+    });
+}
+
+async function getAttendanceMode(uid){
+    const s=await getDoc(doc(db,"attendance",getAttendanceId(uid,getTodayDate())));
+    if(!s.exists()||!s.data().inTime)return"IN";
+    if(!s.data().outTime)return"OUT";
+    return"DONE";
+}
+async function saveScannedAttendance(scannedTime){
+    const u=auth.currentUser;if(!u)return;const date=getTodayDate(),mode=await getAttendanceMode(u.uid);
+    if(mode==="DONE"){$("scanStatus").textContent="Today's IN and OUT are already completed.";stopCamera();return}
+    const rosterSnap=await getRosterForDate(u.uid,date);
+    if(!rosterSnap.exists()){$("scanStatus").textContent="Please save your weekly roster first.";return}
+    const roster=rosterSnap.data();if(roster.type==="Off"){$("scanStatus").textContent="Today is an Off Day.";return}
+    const ref=doc(db,"attendance",getAttendanceId(u.uid,date));
+    if(mode==="IN"){
+        const lateMinutes=calculateLate(scannedTime,roster.inTime);
+        await setDoc(ref,{userId:u.uid,date,inTime:scannedTime,outTime:"",lateMinutes,totalMinutes:0,totalHours:0,otMinutes:0,otHours:0,status:"Present",inGps:currentGps?{...currentGps}:null,createdAt:new Date().toISOString()},{merge:true});
+        $("scanStatus").textContent=`✓ IN time scanned: ${scannedTime}`;
+    }else{
+        const s=await getDoc(ref),a=s.data(),totalMinutes=calculateTotalMinutes(a.inTime,scannedTime),standardMinutes=roster.type==="Half Day"?255:510,otMinutes=Math.max(0,totalMinutes-standardMinutes);
+        await setDoc(ref,{outTime:scannedTime,totalMinutes,totalHours:Number((totalMinutes/60).toFixed(2)),otMinutes,otHours:Number((otMinutes/60).toFixed(2)),status:"Completed",outGps:currentGps?{...currentGps}:null,updatedAt:new Date().toISOString()},{merge:true});
+        $("scanStatus").textContent=`✓ OUT time scanned: ${scannedTime}`;
+    }
+    await loadTodayAttendance(u.uid);await loadStaffWeeklySummary(u.uid);setTimeout(stopCamera,800);
+}
+function extractTime(text){
+    const cleaned=String(text||"").replace(/[Oo]/g,"0").replace(/[Il]/g,"1");
+    const matches=[...cleaned.matchAll(/\b([01]?\d|2[0-3])\s*[:.\-]\s*([0-5]\d)\b/g)];
+    if(!matches.length)return null;
+    const h=String(Number(matches[0][1])).padStart(2,"0"),m=matches[0][2];return `${h}:${m}`;
+}
+async function runOcrScan(){
+    if(ocrBusy||!cameraStream)return;ocrBusy=true;
+    try{
+        const video=$("cameraVideo"),canvas=$("ocrCanvas");
+        if(video.videoWidth<10)return;
+        const w=video.videoWidth,h=video.videoHeight;
+        canvas.width=w;canvas.height=Math.floor(h*0.45);
+        const ctx=canvas.getContext("2d");ctx.drawImage(video,0,Math.floor(h*0.25),w,Math.floor(h*0.45),0,0,w,Math.floor(h*0.45));
+        $("scanStatus").textContent="Scanning machine time...";
+        const result=await Tesseract.recognize(canvas,"eng",{logger:()=>{}});
+        const detected=extractTime(result.data.text);
+        if(detected){
+            if(detected===lastDetectedTime)sameDetectionCount++;else{lastDetectedTime=detected;sameDetectionCount=1}
+            $("scanStatus").textContent=`Detected ${detected} • confirming...`;
+            if(sameDetectionCount>=2){await saveScannedAttendance(detected);sameDetectionCount=0;lastDetectedTime=""}
+        }else{$("scanStatus").textContent="No clear time detected. Hold camera steady and closer."}
+    }catch(e){console.error(e);$("scanStatus").textContent="Scan error: "+e.message}
+    finally{ocrBusy=false}
+}
+$("openCameraBtn").onclick=async()=>{
+    const u=auth.currentUser;if(!u)return;
+    $("scanStatus").textContent="Refreshing GPS...";
+    await refreshGpsOnce();
+    const mode=await getAttendanceMode(u.uid);
+    if(mode==="DONE"){$("scanStatus").textContent="Today's attendance is already completed.";return}
+    $("cameraModeText").textContent=`Auto scan mode: ${mode}`;
+    try{
+        cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false});
+        $("cameraVideo").srcObject=cameraStream;$("cameraVideo").style.display="block";$("closeCameraBtn").style.display="block";$("openCameraBtn").disabled=true;
+        sameDetectionCount=0;lastDetectedTime="";ocrTimer=setInterval(runOcrScan,1800);
+    }catch(e){$("scanStatus").textContent="Camera error: "+e.message}
+};
+function stopCamera(){
+    if(ocrTimer){clearInterval(ocrTimer);ocrTimer=null}
+    if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}
+    if($("cameraVideo")){$("cameraVideo").style.display="none";$("cameraVideo").srcObject=null}
+    if($("closeCameraBtn"))$("closeCameraBtn").style.display="none";
+    if($("openCameraBtn"))$("openCameraBtn").disabled=false;
+}
+$("closeCameraBtn").onclick=stopCamera;
+
+async function loadTodayAttendance(uid){
+    const today=getTodayDate();
+    const rosterSnap=await getRosterForDate(uid,today);
+    if($("staffTodayRoster")){
+        if(rosterSnap.exists()){
+            const r=rosterSnap.data();
+            $("staffTodayRoster").textContent=`Roster: ${r.type||"Full Day"} ${r.inTime||""}${r.outTime?" - "+r.outTime:""}`;
+        }else{
+            $("staffTodayRoster").textContent="Roster: Not Set";
+        }
+    }
+    const s=await getDoc(doc(db,"attendance",getAttendanceId(uid,today)));
+    if(!s.exists()){
+        $("staffInTime").textContent="--:--";$("staffOutTime").textContent="--:--";$("staffTotal").textContent="0h 0m";
+        $("staffLate").textContent="0 min";$("staffOT").textContent="0 min";$("staffStatus").textContent="Not Marked";
+        $("staffTodayGps").innerHTML=gpsMapLink(null,"IN GPS")+gpsMapLink(null,"OUT GPS");
+        return;
+    }
+    const d=s.data();
+    $("staffInTime").textContent=d.inTime||"--:--";$("staffOutTime").textContent=d.outTime||"--:--";
+    $("staffTotal").textContent=formatMinutesToHours(d.totalMinutes||0);$("staffLate").textContent=(d.lateMinutes||0)+" min";
+    $("staffOT").textContent=(d.otMinutes||0)+" min";$("staffStatus").textContent=d.status||"Present";
+    $("staffTodayGps").innerHTML=gpsMapLink(d.inGps,"IN GPS")+gpsMapLink(d.outGps,"OUT GPS");
+}
+
+async function loadStaffWeeklySummary(uid){
+    const start=getWeekStartDate(),end=getWeekEndDate();
+    const snap=await getDocs(query(collection(db,"attendance"),where("userId","==",uid)));
+    let tm=0,to=0,tl=0;
+    snap.forEach(x=>{const d=x.data(),date=String(d.date||"");if(date>=start&&date<=end){tm+=Number(d.totalMinutes)||0;to+=Number(d.otMinutes)||0;tl+=Number(d.lateMinutes)||0}});
+    $("staffWeeklyHours").textContent=formatMinutesToHours(tm);$("staffWeeklyOT").textContent=formatMinutesToHours(to);$("staffWeeklyLate").textContent=tl+" min";
+    const pct=Math.min(100,Math.round((tm/2550)*100));$("weeklyProgressBar").style.width=pct+"%";$("weeklyTargetText").textContent=`Weekly target: 42h 30m • ${pct}% completed`;
+}
+
+async function loadStaffList(){
+    const snap=await getDocs(collection(db,"users")),unique=new Map();
+    snap.forEach(x=>{
+        const d=x.data(),role=(d.role||"").trim().toLowerCase();
+        if(role!=="staff"||d.active===false)return;
+        const email=(d.email||"").trim().toLowerCase(),key=email||x.id;
+        if(!unique.has(key))unique.set(key,{uid:x.id,name:d.name||"Staff",nic:d.nic||"",empNo:d.empNo||"",designation:d.designation||"",department:d.department||"",mobile:d.mobile||"",address:d.address||"",joinDate:d.joinDate||"",active:d.active!==false});
+    });
+    cachedStaffList=[...unique.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    const sel=$("managerStaffSelect");
+    sel.innerHTML='<option value="">Select Staff</option>';
+    for(const st of cachedStaffList){
+        const o=document.createElement("option");
+        o.value=st.uid;
+        o.textContent=st.name;
+        sel.appendChild(o);
+    }
+}
+async function loadManagerDashboard(date){
+    const c=$("managerAttendanceCards");c.innerHTML='<div class="empty-state">Loading...</div>';let present=0,lateCount=0,offCount=0,totalStaffOT=0,completedCount=0,cards=[];
+    for(const staff of cachedStaffList){
+        let rt="Not Set",ri="--:--",ro="--:--",ai="--:--",ao="--:--",late="0 min",total="0h 0m",ot="0h 0m",status="Absent";
+        const rs=await getRosterForDate(staff.uid,date);
+        if(rs.exists()){const r=rs.data();rt=r.type||"Full Day";ri=r.inTime||"--:--";ro=r.outTime||"--:--";if(rt==="Off"){status="Off";offCount++}}
+        let inGps=null,outGps=null;
+        const as=await getDoc(doc(db,"attendance",getAttendanceId(staff.uid,date)));
+        if(as.exists()){
+            const a=as.data(),lm=Number(a.lateMinutes)||0;
+            ai=a.inTime||"--:--";ao=a.outTime||"--:--";late=lm+" min";total=formatMinutesToHours(a.totalMinutes||0);ot=formatMinutesToHours(a.otMinutes||0);status=a.status||"Present";
+            inGps=a.inGps||null;outGps=a.outGps||null;
+            totalStaffOT+=Number(a.otMinutes)||0;
+            if(a.status==="Completed")completedCount++;
+            if(a.inTime)present++;if(lm>0)lateCount++;
+        }
+        cards.push(`<div class="att-card">
+            <div class="att-card-header"><div class="att-name">${escapeHTML(staff.name)}</div><span class="status-pill ${statusPillClass(status)}">${escapeHTML(status)}</span></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">Roster</div><div class="detail-value">${escapeHTML(rt)}</div></div>
+                <div class="detail-item"><div class="detail-label">Late</div><div class="detail-value">${late}</div></div>
+                <div class="detail-item"><div class="detail-label">Roster IN</div><div class="detail-value">${ri}</div></div>
+                <div class="detail-item"><div class="detail-label">Roster OUT</div><div class="detail-value">${ro}</div></div>
+                <div class="detail-item"><div class="detail-label">Actual IN</div><div class="detail-value">${ai}</div></div>
+                <div class="detail-item"><div class="detail-label">Actual OUT</div><div class="detail-value">${ao}</div></div>
+                <div class="detail-item"><div class="detail-label">Total</div><div class="detail-value">${total}</div></div>
+                <div class="detail-item"><div class="detail-label">OT</div><div class="detail-value">${ot}</div></div>
+            </div>
+            <div class="detail-grid">${gpsMapLink(inGps,"IN GPS")}${gpsMapLink(outGps,"OUT GPS")}</div>
+        </div>`);
+    }
+    c.innerHTML=cards.length?cards.join(""):'<div class="empty-state">No active staff.</div>';
+    $("managerSelectedDate").textContent="Date: "+date;$("totalStaffCount").textContent=cachedStaffList.length;
+    $("presentTodayCount").textContent=present;$("lateTodayCount").textContent=lateCount;$("offTodayCount").textContent=offCount;
+    $("totalStaffOTCount").textContent=formatMinutesToHours(totalStaffOT);
+    $("completedTodayCount").textContent=completedCount;
+    $("absentTodayCount").textContent=Math.max(0,cachedStaffList.length-present-offCount);
+}
+$("loadDateBtn").onclick=()=>loadManagerDashboard($("managerDatePicker").value);
+$("refreshManagerBtn").onclick=async()=>{await loadStaffList();$("managerDatePicker").value=getTodayDate();await loadManagerDashboard(getTodayDate())};
+
+$("viewStaffDetailsBtn").onclick=async()=>{
+    const uid=$("managerStaffSelect").value;if(!uid)return;
+    const u=await getDoc(doc(db,"users",uid)),d=u.data()||{};
+    $("historySelectedStaffName").textContent=d.name||"Staff";
+    if(!$("historyMonth").value)$("historyMonth").value=getCurrentMonth();
+    const selectedDate=$("managerDatePicker").value||getTodayDate();
+    const attendanceSnap=await getDoc(doc(db,"attendance",getAttendanceId(uid,selectedDate)));
+    const att=attendanceSnap.exists()?attendanceSnap.data():{};
+    $("managerStaffDetailBox").innerHTML=`<div class="profile-card">
+        <div class="att-card-header">
+            <div class="att-name">${escapeHTML(d.name||"Staff")}</div>
+            <span class="status-pill ${d.active===false?"pill-inactive":"pill-active"}">${d.active===false?"Inactive":"Active"}</span>
+        </div>
+        <div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">NIC</div><div class="detail-value">${escapeHTML(d.nic||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Employee No</div><div class="detail-value">${escapeHTML(d.empNo||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Job Role</div><div class="detail-value">${escapeHTML(d.designation||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Outlet / Department</div><div class="detail-value">${escapeHTML(d.department||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Mobile</div><div class="detail-value">${escapeHTML(d.mobile||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Address</div><div class="detail-value">${escapeHTML(d.address||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">Date Joined</div><div class="detail-value">${escapeHTML(d.joinDate||"-")}</div></div>
+            <div class="detail-item"><div class="detail-label">System Role</div><div class="detail-value">${escapeHTML(d.role||"Staff")}</div></div>
+        </div>
+        <div class="dashboard-box blue-box" style="margin-top:10px;">
+            <div class="section-title"><strong>Attendance • ${escapeHTML(selectedDate)}</strong><span class="mini-note">Selected date</span></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">IN</div><div class="detail-value">${escapeHTML(att.inTime||"--:--")}</div></div>
+                <div class="detail-item"><div class="detail-label">OUT</div><div class="detail-value">${escapeHTML(att.outTime||"--:--")}</div></div>
+                <div class="detail-item"><div class="detail-label">Total Hours</div><div class="detail-value">${formatMinutesToHours(att.totalMinutes||0)}</div></div>
+                <div class="detail-item"><div class="detail-label">Individual OT</div><div class="detail-value">${formatMinutesToHours(att.otMinutes||0)}</div></div>
+                <div class="detail-item"><div class="detail-label">Late</div><div class="detail-value">${Number(att.lateMinutes)||0} min</div></div>
+                <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${escapeHTML(att.status||"No Record")}</div></div>
+            </div>
+        </div>
+        <div class="detail-grid">
+            ${gpsMapLink(att.inGps,"IN GPS")}
+            ${gpsMapLink(att.outGps,"OUT GPS")}
+        </div>
+    </div>`;
+
+    const wr=await getDoc(doc(db,"weeklyRosters",uid));
+    if(wr.exists()){
+        const days=wr.data().days||{};
+        let rosterHtml='<div class="profile-card"><strong>Weekly Roster</strong><div class="detail-grid">';
+        for(const day of WEEK_DAYS){
+            const r=days[day.key]||{};
+            rosterHtml+=`<div class="detail-item"><div class="detail-label">${day.label}</div><div class="detail-value">${escapeHTML(r.type||"Not Set")} • ${escapeHTML(r.inTime||"--:--")} - ${escapeHTML(r.outTime||"--:--")}</div></div>`;
+        }
+        rosterHtml+='</div></div>';
+        $("managerWeeklyRosterBox").innerHTML=rosterHtml;
+    }else{
+        $("managerWeeklyRosterBox").innerHTML='<div class="empty-state">Weekly roster not saved yet.</div>';
+    }
+
+    // Automatically show the selected staff member's monthly attendance.
+    await loadHistoryCards(uid,$("historyMonth").value||getCurrentMonth(),"historyCards",true);
+};
+
+async function loadHistoryCards(uid,month,containerId,summary=true){
+    const snap=await getDocs(query(collection(db,"attendance"),where("userId","==",uid))),records=[];
+    snap.forEach(x=>{const d=x.data();if(String(d.date||"").startsWith(month))records.push(d)});
+    records.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    let tm=0,to=0,tl=0,cards=[];
+    for(const r of records){
+        tm+=Number(r.totalMinutes)||0;to+=Number(r.otMinutes)||0;tl+=Number(r.lateMinutes)||0;
+        let rt="Not Set";const rs=await getRosterForDate(uid,r.date);if(rs.exists())rt=rs.data().type||"Full Day";
+        const st=r.status||"Present";
+        cards.push(`<div class="history-card">
+            <div class="att-card-header"><div class="att-name">${escapeHTML(r.date||"")}</div><span class="status-pill ${statusPillClass(st)}">${escapeHTML(st)}</span></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">Roster</div><div class="detail-value">${escapeHTML(rt)}</div></div>
+                <div class="detail-item"><div class="detail-label">Late</div><div class="detail-value">${r.lateMinutes||0} min</div></div>
+                <div class="detail-item"><div class="detail-label">IN</div><div class="detail-value">${r.inTime||"--:--"}</div></div>
+                <div class="detail-item"><div class="detail-label">OUT</div><div class="detail-value">${r.outTime||"--:--"}</div></div>
+                <div class="detail-item"><div class="detail-label">Total</div><div class="detail-value">${formatMinutesToHours(r.totalMinutes||0)}</div></div>
+                <div class="detail-item"><div class="detail-label">OT</div><div class="detail-value">${formatMinutesToHours(r.otMinutes||0)}</div></div>
+            </div>
+            <div class="detail-grid">${gpsMapLink(r.inGps,"IN GPS")}${gpsMapLink(r.outGps,"OUT GPS")}</div>
+        </div>`);
+    }
+    $(containerId).innerHTML=cards.length?cards.join(""):'<div class="empty-state">No records for this month.</div>';
+    if(summary){
+        $("monthlyTotalHours").textContent=formatMinutesToHours(tm);
+        $("monthlyTotalOT").textContent=formatMinutesToHours(to);
+        $("monthlyTotalLate").textContent=tl+" min";
+    }
+}
+$("loadHistoryBtn").onclick=()=>{
+    const uid=$("managerStaffSelect").value,month=$("historyMonth").value;
+    if(!uid){alert("Please select a staff member from Individual Staff Details.");return}
+    if(uid&&month)loadHistoryCards(uid,month,"historyCards",true);
+};
+$("loadStaffOwnHistoryBtn").onclick=()=>{const u=auth.currentUser,month=$("staffHistoryMonth").value;if(u&&month)loadHistoryCards(u.uid,month,"staffOwnHistoryCards",false)};
+
+$("exportHistoryBtn").onclick=async()=>{
+    const uid=$("managerStaffSelect").value,month=$("historyMonth").value;
+    if(!uid||!month){alert("Select staff from Individual Staff Details and choose a month first.");return}
+    const staff=cachedStaffList.find(s=>s.uid===uid);
+    const userSnap=await getDoc(doc(db,"users",uid)),userData=userSnap.exists()?userSnap.data():{};
+    const snap=await getDocs(query(collection(db,"attendance"),where("userId","==",uid))),records=[];
+    snap.forEach(x=>{const d=x.data();if(String(d.date||"").startsWith(month))records.push(d)});
+    records.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+
+    const rows=[["Date","Staff Name","Employee No","Outlet / Department","Mobile","Address","Roster","Roster IN","Roster OUT","Actual IN","Actual OUT","Late","Total Hours","OT","Status","IN Latitude","IN Longitude","IN GPS Accuracy","OUT Latitude","OUT Longitude","OUT GPS Accuracy"]];
+    for(const r of records){
+        const rs=await getRosterForDate(uid,r.date),rd=rs.exists()?rs.data():{};
+        rows.push([
+            r.date||"",userData.name||staff?.name||"Staff",userData.empNo||"",userData.department||"",userData.mobile||"",userData.address||"",
+            rd.type||"Not Set",rd.inTime||"",rd.outTime||"",r.inTime||"",r.outTime||"",
+            formatMinutesToHours(r.lateMinutes||0),formatMinutesToHours(r.totalMinutes||0),formatMinutesToHours(r.otMinutes||0),r.status||"",
+            r.inGps?.lat??"",r.inGps?.lng??"",r.inGps?.accuracy??"",
+            r.outGps?.lat??"",r.outGps?.lng??"",r.outGps?.accuracy??""
+        ]);
+    }
+    downloadCSV(`${(userData.name||staff?.name||"staff").replaceAll(" ","_")}_${month}_attendance.csv`,rows);
+};
+
+$("historyMonth").addEventListener("change",async()=>{
+    const uid=$("managerStaffSelect").value;
+    if(uid&&$("historyMonth").value){
+        await loadHistoryCards(uid,$("historyMonth").value,"historyCards",true);
+    }
+});
+
+
+async function getSelectedManagerStaff(){
+    const uid=$("managerStaffSelect").value;
+    if(!uid){
+        $("staffManagementMessage").textContent="Select a staff member under Individual Staff Details first.";
+        $("staffManagementMessage").style.color="#be123c";
+        return null;
+    }
+    const snap=await getDoc(doc(db,"users",uid));
+    if(!snap.exists()){
+        $("staffManagementMessage").textContent="Selected staff profile was not found.";
+        $("staffManagementMessage").style.color="#be123c";
+        return null;
+    }
+    return {uid,data:snap.data()};
+}
+
+async function deleteAttendanceForUser(uid){
+    const snap=await getDocs(query(collection(db,"attendance"),where("userId","==",uid)));
+    const tasks=[];
+    snap.forEach(x=>{
+        tasks.push(deleteDoc(doc(db,"attendance",x.id)));
+    });
+    await Promise.all(tasks);
+    return tasks.length;
+}
+
+async function deleteLegacyRostersForUser(uid){
+    const snap=await getDocs(collection(db,"rosters"));
+    const tasks=[];
+    snap.forEach(x=>{
+        const d=x.data();
+        if(d.userId===uid || x.id===uid || x.id.startsWith(uid+"_")){
+            tasks.push(deleteDoc(doc(db,"rosters",x.id)));
+        }
+    });
+    await Promise.all(tasks);
+    return tasks.length;
+}
+
+$("clearStaffAttendanceBtn").onclick=async()=>{
+    const selected=await getSelectedManagerStaff();
+    if(!selected)return;
+
+    const name=selected.data.name||"this staff member";
+    const ok=confirm(`Clear ALL attendance history for ${name}?\\n\\nProfile and weekly roster will NOT be deleted.`);
+    if(!ok)return;
+
+    const typed=prompt(`Type CLEAR to confirm deleting all attendance records for ${name}.`);
+    if(typed!=="CLEAR"){
+        $("staffManagementMessage").textContent="Clear cancelled.";
+        $("staffManagementMessage").style.color="#64748b";
+        return;
+    }
+
+    $("clearStaffAttendanceBtn").disabled=true;
+    $("staffManagementMessage").textContent="Clearing attendance...";
+    $("staffManagementMessage").style.color="#b45309";
+
+    try{
+        const count=await deleteAttendanceForUser(selected.uid);
+        $("staffManagementMessage").textContent=`✓ Cleared ${count} attendance record(s) for ${name}.`;
+        $("staffManagementMessage").style.color="#15803d";
+
+        await loadManagerDashboard($("managerDatePicker").value||getTodayDate());
+        await loadHistoryCards(selected.uid,$("historyMonth").value||getCurrentMonth(),"historyCards",true);
+        await $("viewStaffDetailsBtn").onclick();
+    }catch(e){
+        console.error(e);
+        $("staffManagementMessage").textContent="Attendance clear failed: "+e.message;
+        $("staffManagementMessage").style.color="#be123c";
+    }finally{
+        $("clearStaffAttendanceBtn").disabled=false;
+    }
+};
+
+/*
+ FREE / PHONE-ONLY MODE
+ ----------------------
+ A browser app cannot delete another person's Firebase Authentication account.
+ This app can remove all WorkTime Pro Firestore data for the selected staff.
+ After that, the manager must delete that user's Authentication entry manually
+ from Firebase Console > Authentication > Users. This is free and works from phone.
+*/
+async function deleteFirestoreStaffData(uid){
+    await deleteAttendanceForUser(uid);
+    await deleteLegacyRostersForUser(uid);
+
+    await Promise.all([
+        deleteDoc(doc(db,"weeklyRosters",uid)).catch(()=>{}),
+        deleteDoc(doc(db,"locations",uid)).catch(()=>{}),
+        deleteDoc(doc(db,"rosters",uid)).catch(()=>{})
+    ]);
+
+    await deleteDoc(doc(db,"users",uid));
+}
+
+$("removeStaffCompletelyBtn").onclick=async()=>{
+    const selected=await getSelectedManagerStaff();
+    if(!selected)return;
+
+    const name=selected.data.name||"Staff";
+    const empNo=selected.data.empNo||"-";
+
+    const ok=confirm(
+        `COMPLETELY REMOVE ${name}?\\n\\n`+
+        `Employee No: ${empNo}\\n\\n`+
+        `Step 1 deletes profile, attendance, roster and GPS data from WorkTime Pro. `+
+        `Step 2 is a manual free phone step in Firebase Authentication to release the Gmail.`
+    );
+    if(!ok)return;
+
+    const typed=prompt(`Type REMOVE to confirm permanent removal of ${name}.`);
+    if(typed!=="REMOVE"){
+        $("staffManagementMessage").textContent="Removal cancelled.";
+        $("staffManagementMessage").style.color="#64748b";
+        return;
+    }
+
+    $("removeStaffCompletelyBtn").disabled=true;
+    $("staffManagementMessage").textContent="Removing staff...";
+    $("staffManagementMessage").style.color="#be123c";
+
+    try{
+        const staffEmail=selected.data.email||"the staff Gmail";
+        await deleteFirestoreStaffData(selected.uid);
+
+        $("staffManagementMessage").innerHTML=
+            `✓ ${escapeHTML(name)}'s WorkTime Pro data was removed.<br>`+
+            `<span style="color:#9f1239">Final free step:</span> Firebase Console → Authentication → Users → delete <strong>${escapeHTML(staffEmail)}</strong>. `+
+            `After that, the same Gmail can sign up again.`;
+        $("staffManagementMessage").style.color="#15803d";
+
+        $("managerStaffSelect").value="";
+        $("managerStaffDetailBox").innerHTML='<div class="empty-state">Select a staff member.</div>';
+        $("managerWeeklyRosterBox").innerHTML="";
+        $("historySelectedStaffName").textContent="Select staff from Individual Staff Details above";
+        $("historyCards").innerHTML='<div class="empty-state">Select staff and month.</div>';
+
+        await loadStaffList();
+        await loadManagerDashboard($("managerDatePicker").value||getTodayDate());
+    }catch(e){
+        console.error(e);
+        $("staffManagementMessage").textContent=e.message;
+        $("staffManagementMessage").style.color="#be123c";
+    }finally{
+        $("removeStaffCompletelyBtn").disabled=false;
+    }
+};
+
+function updateLiveClock(){
+    const el=$("staffLiveClock");if(!el)return;const n=new Date();
+    el.textContent=n.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    $("staffTodayDate").textContent=n.toLocaleDateString([],{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
+setInterval(updateLiveClock,1000);updateLiveClock();
+
+let deferredInstallPrompt=null;
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+    event.preventDefault();
+    deferredInstallPrompt=event;
+    if($("pwaInstallWrap"))$("pwaInstallWrap").style.display="block";
+});
+
+window.addEventListener("appinstalled",()=>{
+    deferredInstallPrompt=null;
+    if($("pwaInstallWrap"))$("pwaInstallWrap").style.display="none";
+});
+
+if($("pwaInstallBtn")){
+    $("pwaInstallBtn").onclick=async()=>{
+        if(!deferredInstallPrompt){
+            alert("If the install button is not available, open the browser menu and choose 'Add to Home screen' or 'Install app'.");
+            return;
+        }
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt=null;
+        $("pwaInstallWrap").style.display="none";
+    };
+}
+
+if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
+        navigator.serviceWorker.register("./sw.js").catch(err=>{
+            console.error("Service worker registration failed:",err);
+        });
+    });
+}
+
+console.log("WorkTime Pro Free Phone-Only Final ready!");
+</script>
+</body>
+</html>
