@@ -96,7 +96,7 @@ input,select,button{font-size:13px}
 .light-btn{background:#e2e8f0;color:#0f172a}
 .main-btn:disabled{background:#94a3b8;cursor:not-allowed}
 .link-btn{border:0;background:transparent;color:var(--primary);text-decoration:underline;cursor:pointer;margin-top:10px;font-size:12px}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
 .stat-card{
     padding:12px 10px;
     border-radius:13px;
@@ -216,6 +216,7 @@ input,select,button{font-size:13px}
         <div class="stat-card green-box">Present<span id="presentTodayCount" class="stat-number">0</span></div>
         <div class="stat-card yellow-box">Late<span id="lateTodayCount" class="stat-number">0</span></div>
         <div class="stat-card gray-box">Off<span id="offTodayCount" class="stat-number">0</span></div>
+        <div class="stat-card blue-box">Total Staff OT<span id="totalStaffOTCount" class="stat-number">0h 0m</span></div>
     </div>
 
     <div class="dashboard-box blue-box">
@@ -643,7 +644,7 @@ async function loadStaffList(){
     }
 }
 async function loadManagerDashboard(date){
-    const c=$("managerAttendanceCards");c.innerHTML='<div class="empty-state">Loading...</div>';let present=0,lateCount=0,offCount=0,cards=[];
+    const c=$("managerAttendanceCards");c.innerHTML='<div class="empty-state">Loading...</div>';let present=0,lateCount=0,offCount=0,totalStaffOT=0,cards=[];
     for(const staff of cachedStaffList){
         let rt="Not Set",ri="--:--",ro="--:--",ai="--:--",ao="--:--",late="0 min",total="0h 0m",ot="0h 0m",status="Absent";
         const rs=await getRosterForDate(staff.uid,date);
@@ -654,6 +655,7 @@ async function loadManagerDashboard(date){
             const a=as.data(),lm=Number(a.lateMinutes)||0;
             ai=a.inTime||"--:--";ao=a.outTime||"--:--";late=lm+" min";total=formatMinutesToHours(a.totalMinutes||0);ot=formatMinutesToHours(a.otMinutes||0);status=a.status||"Present";
             inGps=a.inGps||null;outGps=a.outGps||null;
+            totalStaffOT+=Number(a.otMinutes)||0;
             if(a.inTime)present++;if(lm>0)lateCount++;
         }
         cards.push(`<div class="att-card">
@@ -674,6 +676,7 @@ async function loadManagerDashboard(date){
     c.innerHTML=cards.length?cards.join(""):'<div class="empty-state">No active staff.</div>';
     $("managerSelectedDate").textContent="Date: "+date;$("totalStaffCount").textContent=cachedStaffList.length;
     $("presentTodayCount").textContent=present;$("lateTodayCount").textContent=lateCount;$("offTodayCount").textContent=offCount;
+    $("totalStaffOTCount").textContent=formatMinutesToHours(totalStaffOT);
 }
 $("loadDateBtn").onclick=()=>loadManagerDashboard($("managerDatePicker").value);
 $("refreshManagerBtn").onclick=async()=>{await loadStaffList();$("managerDatePicker").value=getTodayDate();await loadManagerDashboard(getTodayDate())};
@@ -681,8 +684,9 @@ $("refreshManagerBtn").onclick=async()=>{await loadStaffList();$("managerDatePic
 $("viewStaffDetailsBtn").onclick=async()=>{
     const uid=$("managerStaffSelect").value;if(!uid)return;
     const u=await getDoc(doc(db,"users",uid)),d=u.data()||{};
-    const todayAttendance=await getDoc(doc(db,"attendance",getAttendanceId(uid,getTodayDate())));
-    const att=todayAttendance.exists()?todayAttendance.data():{};
+    const selectedDate=$("managerDatePicker").value||getTodayDate();
+    const attendanceSnap=await getDoc(doc(db,"attendance",getAttendanceId(uid,selectedDate)));
+    const att=attendanceSnap.exists()?attendanceSnap.data():{};
     $("managerStaffDetailBox").innerHTML=`<div class="profile-card">
         <div class="att-card-header">
             <div class="att-name">${escapeHTML(d.name||"Staff")}</div>
@@ -693,6 +697,17 @@ $("viewStaffDetailsBtn").onclick=async()=>{
             <div class="detail-item"><div class="detail-label">Employee No</div><div class="detail-value">${escapeHTML(d.empNo||"-")}</div></div>
             <div class="detail-item"><div class="detail-label">Job Role</div><div class="detail-value">${escapeHTML(d.designation||"-")}</div></div>
             <div class="detail-item"><div class="detail-label">System Role</div><div class="detail-value">${escapeHTML(d.role||"Staff")}</div></div>
+        </div>
+        <div class="dashboard-box blue-box" style="margin-top:10px;">
+            <div class="section-title"><strong>Attendance • ${escapeHTML(selectedDate)}</strong><span class="mini-note">Selected date</span></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">IN</div><div class="detail-value">${escapeHTML(att.inTime||"--:--")}</div></div>
+                <div class="detail-item"><div class="detail-label">OUT</div><div class="detail-value">${escapeHTML(att.outTime||"--:--")}</div></div>
+                <div class="detail-item"><div class="detail-label">Total Hours</div><div class="detail-value">${formatMinutesToHours(att.totalMinutes||0)}</div></div>
+                <div class="detail-item"><div class="detail-label">Individual OT</div><div class="detail-value">${formatMinutesToHours(att.otMinutes||0)}</div></div>
+                <div class="detail-item"><div class="detail-label">Late</div><div class="detail-value">${Number(att.lateMinutes)||0} min</div></div>
+                <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${escapeHTML(att.status||"No Record")}</div></div>
+            </div>
         </div>
         <div class="detail-grid">
             ${gpsMapLink(att.inGps,"IN GPS")}
